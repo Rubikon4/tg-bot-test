@@ -6,7 +6,7 @@ from aiogram.types import Message
 
 from config import TOKEN
 
-bot = Bot(token=TOKEN)
+bot = Bot(token=TOKEN) # токен бота импортируйте из config.py, который в свою очередь создайте в той же папке, что и run.py
 dp = Dispatcher()
 
 @dp.message(CommandStart())
