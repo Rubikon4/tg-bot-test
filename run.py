@@ -1,8 +1,8 @@
 import asyncio
 import logging
 from aiogram import Bot, Dispatcher
-from config import TOKEN
-from handlers import router
+from Config.config import TOKEN
+from Handlers.handlers import router
 
 bot = Bot(token=TOKEN) # токен бота импортируйте из config.py, который в свою очередь создайте в той же папке, что и run.py
 dp = Dispatcher()
