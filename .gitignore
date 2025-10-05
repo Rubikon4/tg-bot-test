@@ -1,4 +1,4 @@
-Congig
-config.py
+Config
+config.py/
 .venv
-__pycache__
+__pycache__/
