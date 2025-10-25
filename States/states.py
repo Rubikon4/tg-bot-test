@@ -1,5 +1,9 @@
 from aiogram.fsm.state import StatesGroup, State
 
-class Registation(StatesGroup):
-    name = State()
+class Registration(StatesGroup):
+    username = State()
     lucky_number = State()
+
+class ChangeProfile(StatesGroup):
+    new_username = State()
+    new_lucky_number = State()

@@ -4,11 +4,22 @@ Config/*
 
 # Виртуальное окружение
 .venv/
+venv/
+env/
+ENV/
 
 # Кэшированные файлы Python
 __pycache__/
 *.pyc
 *.pyo
+*.pyd
+.Python
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+*.whl
 
 # Миграции Alembic
 Database/migrations/versions/__pycache__/
@@ -16,16 +27,53 @@ Database/migrations/script.py.mako
 
 # Файлы базы данных
 *.sqlite
+*.sqlite3
 *.db
 *.sql
+Database/data.db
 
 # Логи и временные файлы
-*.log
-*.tmp
+*.sqlite
+*.sqlite3
+*.db
+*.sql
+Database/data.db
 
 # Файлы IDE
 .vscode/
+.idea/
+*.iml
+.DS_Store
 
 # Системные файлы Windows
 Thumbs.db
 desktop.ini
+$RECYCLE.BIN/
+
+# Системные файлы macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# pytest
+.pytest_cache/
+.coverage
+htmlcov/
+
+# mypy
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# Прочее
+ALEMBIC_CHEATSHEET.md
+.env
+.env.local
+*.env
+
+# Telegram Bot файлы
+*.session
+*.session-journal

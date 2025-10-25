@@ -1,3 +1,5 @@
+import sys
+from pathlib import Path
 from logging.config import fileConfig
 
 from sqlalchemy import engine_from_config
@@ -6,13 +8,21 @@ from sqlalchemy.ext.asyncio import AsyncEngine
 
 from alembic import context
 
+project_root = Path(__file__).parent.parent.parent
+sys.path.insert(0, str(project_root))
+
 from Database.data import Base, SYNC_DATABASE_URL
 
+"""Мои модели"""
 from Database.users import User
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
 config = context.config
+
+# Устанавливаем правильный путь к базе данных
+db_path = project_root / "Database" / "data.db"
+config.set_main_option("sqlalchemy.url", f"sqlite:///{db_path}")
 
 # Interpret the config file for Python logging.
 # This line sets up loggers basically.
