@@ -13,13 +13,24 @@ async def get_user_by_tg_id(tg_id: int) -> User | None:
         )
         return result.scalar_one_or_none()
     
-async def create_user_in_users(tg_id: int, username: str, lucky_number: int) -> User:
+async def create_user_in_users(
+        tg_id: int,
+        username: str,
+        lucky_number: int,
+        tg_username: str | None = None,
+        tg_first_name: str | None = None,
+        tg_last_name: str | None = None,
+) -> User:
     """Добавляет нового пользователя в БД в таблицу users"""
     async with async_session() as session:
         new_user = User(
             tg_id=tg_id,
+            tg_username=tg_username,
+            tg_first_name=tg_first_name,
+            tg_last_name=tg_last_name,
             username=username,
-            lucky_number=lucky_number
+            lucky_number=lucky_number,
+            is_admin=False
         )
         session.add(new_user)
         await session.commit()

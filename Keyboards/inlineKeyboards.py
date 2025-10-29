@@ -2,13 +2,13 @@ from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 
 
 
-iButtons = InlineKeyboardMarkup(inline_keyboard=[
+iButtons = InlineKeyboardMarkup(inline_keyboard=[ # Пример инлайн-кнопки
     [InlineKeyboardButton(text='Test button 1!', url='https://www.youtube.com/watch?v=dQw4w9WgXcQ')],
 ]) # пример инлайн-кнопки с URL
 
 
 
-            ###   Регистрация   ###     
+            ###   Registration   ###     
 
 il_RegistrationProfileBtn_insideReply = InlineKeyboardMarkup(inline_keyboard=[
     [InlineKeyboardButton(text='🔑 Зарегистрироваться', callback_data='start_registration')]

@@ -8,9 +8,9 @@ from Keyboards import inlineKeyboards as ik
 
 from States.states import Registration, ChangeProfile
 
-from Database.crud import create_user_in_users, update_user_in_users
+from Database.crud import create_user_in_users, update_user_in_users, get_user_by_tg_id
 
-from Utils.registation import get_profile
+from Utils.registation import get_profile_send_reply
 
 
 
@@ -19,63 +19,65 @@ router = Router()
             ###   Командные хендлеры   ###
 @router.message(CommandStart())
 async def cmd_start(message: Message):
-    await message.answer('Hello! bot is running... Type /help for commands list.', reply_markup=rk.rButtons)
+    await message.answer('Привет! Я живее всех живых!', reply_markup=rk.rButtons)
 
 @router.message(Command('dice'))
 async def roll_dice(message: Message):
-    await message.answer_dice()
+    if get_user_by_tg_id(message.from_user.id) is None:
+        await message.answer('Cначала нужно зарегистрироваться! Нажми кнопку "🧑 Мой профиль" и следуй инструкциям.')
+    else:
+        await message.answer_dice()
 
-@router.message(Command('getID'))
-async def get_id(message: Message):
-    await message.reply(f'Your ID: {message.from_user.id}\nYour name: {message.from_user.first_name}') # reply для ОТВЕТА на сообщение (как функция тг)
+# @router.message(Command('getID'))
+# async def get_id(message: Message):
+#     await message.reply(f'Your ID: {message.from_user.id}\nYour name: {message.from_user.first_name}') # reply для ОТВЕТА на сообщение (как функция тг)
 
 @router.message(Command('meme'))
 async def get_meme(message: Message):
-    await message.answer_photo(photo='AgACAgIAAxkBAAMxaN0uaIVb7R4yLWBLZORJ0U3IUVEAAtD7MRueBelKtCJgPakJ0xIBAAMCAAN5AAM2BA',
-                               caption='AHAHAHAHAHAHAHH AHAHHAH AHHA haha.....', reply_markup=ik.iButtons)
+    if get_user_by_tg_id(message.from_user.id) is None:
+        await message.answer('Cначала нужно зарегистрироваться! Нажми кнопку "🧑 Мой профиль" и следуй инструкциям.')
+    else:
+        await message.answer_photo(photo='AgACAgIAAxkBAAIDvWkCUVhOLsJ8gLOVnwGDmIsuhtarAAKY-TEb_HcRSJe2xTakO1MIAQADAgADeAADNgQ',
+                                   caption='Всего ли тест картинки, не обращай внимания...',) # reply_markup=ik.iButtons
 
-@router.message(Command('reg'))
+@router.message(Command('register'))
 async def cmd_register(message: Message):
-    await get_profile(message)
+    await get_profile_send_reply(message)
 
             ###   Кнопочные хендлеры на реплай кнопки   ###
 @router.message(F.text == '🧑 Мой профиль')
 async def profile_button(message: Message):
-    await get_profile(message)
+    await get_profile_send_reply(message)
         
 @router.message(F.text == '🎲 Бросить дайс')
 async def roll_dice_button(message: Message):
-    await message.answer_dice()
+    if get_user_by_tg_id(message.from_user.id) is None:
+        await message.answer('Cначала нужно зарегистрироваться! Нажми кнопку "🧑 Мой профиль" и следуй инструкциям.')
+    else:
+        await message.answer_dice()
 
-@router.message(F.text == 'Найти фото (в разработке)')
-async def say_hello(message: Message):
-    await message.answer('Сказал же, что в разработке! Потом появится...')
+# @router.message(F.text == 'Найти фото (в разработке)')
+# async def say_hello(message: Message):
+#     await message.answer('Сказал же, что в разработке! Потом появится...')
         
             ###   Смешанные хендлеры (CMD+РеплайКнопки)   ###     
 @router.message(Command('help'))
 @router.message(F.text == '🔍 Помощь')
 async def get_help(message: Message):
     await message.answer(
-    '/help to get to get commands list\n'
-    '/meme to get funny meme lol\n'
-    '/dice to throw dice\n'
-    '/getID to get your personal ID\n'
-    '/reg to register yourself'
+    '/help чтобы увидеть все доступные команды.\n'
+    '/library чтобы войти в библиотеку бота.\n'
+    '/meme просто мем.\n'
+    '/dice чтобы бросить дайс.\n'
+#    '/getID получить свой tg_id\n'
+    '/register чтобы создать/изменить или посмотреть профиль.\n\n'
 )
-            ###   Прочие хендлеры   ###
-@router.message(F.photo)                            
-async def get_photo(message: Message):
-    await message.answer(f'Your Photo_ID: {message.photo[-1].file_id}')
-
-@router.message(F.text == 'Hello')
-async def say_hello(message: Message):
-    await message.answer('Hello mate!')
 
             ###   Коллбэки   ###
-"""Регистрация"""
+"""Регистрация."""
+"""Регистрация по инлайн кнопке 'il_RegistrationProfileBtn_insideReply'."""
 @router.callback_query(F.data == 'start_registration')
 async def reg_start_step(callback: CallbackQuery, state: FSMContext):
-    """Регистрация по инлайн кнопке 'il_RegistrationProfileBtn_insideReply'."""
     await callback.answer()
     await state.set_state(Registration.username)
     await callback.message.answer('Для начала, введи свой никнейм (до 30 символов):')
@@ -86,6 +88,8 @@ async def reg_username_step(message: Message, state: FSMContext):
         await message.answer('❌ Никнейм слишком длинный! Максимум 30 символов. Попробуй снова:')
     elif len(user_input) == 0:
         await message.answer('❌ Никнейм не может быть пустым! Попробуй снова:')
+    elif not user_input.replace('_', '').isalnum():
+        await message.answer('❌ Никнейм может содержать только буквы, цифры и "_". Попробуй снова:')
     else:
         await state.update_data(username=message.text)
         await state.set_state(Registration.lucky_number)
@@ -99,6 +103,9 @@ async def reg_luckyNumber_step(message: Message, state: FSMContext):
             reg_data = await state.get_data()
             await create_user_in_users(
                 tg_id=message.from_user.id,
+                tg_username=message.from_user.username,
+                tg_first_name=message.from_user.first_name,
+                tg_last_name=message.from_user.last_name,
                 username=reg_data['username'],
                 lucky_number=reg_data['lucky_number']
             )
@@ -113,10 +120,10 @@ async def reg_luckyNumber_step(message: Message, state: FSMContext):
     except ValueError:
         await message.answer("❌ Пожалуйста, введи ЦЕЛОЕ ПОЛОЖИТЕЛЬНОЕ число (например: 4, 16, 111 и т.д.):")
 
-"""Изменение профиля"""
+"""Изменение профиля."""
+"""Изменение профиля по инлайн кнопке 'il_ChangeProfileBtn_insideReply'."""
 @router.callback_query(F.data == 'start_change_profile')
 async def changeProfile_start_step(callback: CallbackQuery, state: FSMContext):
-    """Изменение профиля по инлайн кнопке 'il_ChangeProfileBtn_insideReply'."""
     await callback.answer()
     await state.set_state(ChangeProfile.new_username)
     await callback.message.answer('Введи свой новый никнейм (до 30 символов):')
@@ -162,30 +169,21 @@ async def changeProfile_newLuckyNumber_step(message: Message, state: FSMContext)
     except ValueError:
         await message.answer("❌ Пожалуйста, введи ЦЕЛОЕ ПОЛОЖИТЕЛЬНОЕ число (например: 4, 16, 111 и т.д.):")
 
+            ###   Прочие хендлеры   ###
+@router.message(F.photo)                            
+async def get_photo(message: Message):
+    if get_user_by_tg_id(message.from_user.id) is None:
+        await message.answer('Cначала нужно зарегистрироваться! Нажми кнопку "🧑 Мой профиль" и следуй инструкциям.')
+    else:
+        await message.answer(f'Your Photo_ID: {message.photo[-1].file_id}')
 
+@router.message(F.text == 'Hello') # ECHO test
+async def say_hello(message: Message):
+    await message.answer('Hello mate!')
 
-
-
-# @router.callback_query(F.data == 'start_change_profile')
-# async def changeProfile(callback: CallbackQuery):
-#     await callback.answer('Вы нажали "Изменить профиль"')  # callback.answer() убирает "мигание" кнопки после нажатия
-#     await callback.message.answer('В будущем здесь можно будет поменять свой профиль.')
-
-            ###   Состояния   ###
-# @router.message(Command('reg'))
-# async def reg_user_firstStep(message: Message, state: FSMContext):
-#     await state.set_state(Registration.name)
-#     await message.answer('Введите своё имя:')
-# 
-# @router.message(Registration.name)
-# async def reg_user_secondStep(message: Message, state: FSMContext):
-#     await state.update_data(name = message.text)
-#     await state.set_state(Registration.lucky_number)
-#     await message.answer('Введите своё счастливое число:')
-#     
-# @router.message(Registration.lucky_number)
-# async def reg_user_thirdStep(message: Message, state: FSMContext):
-#     await state.update_data(lucky_number = message.text)
-#     reg_data = await state.get_data()
-#     await message.answer(f'Регистрация завершена! Ваши данные:\nИмя: {reg_data['name']}\nСчастливое число: {reg_data['lucky_number']}')
-#     await state.clear()
+@router.message() # хендлер для случайных сообщений. Всегда должен быть ниже всех остальных хендлеров!
+async def uncnown_message(message: Message):
+    await message.answer(
+        '🤔 Хм-м... Я что-то не совсем тебя понял.\n'
+        'Если тебе что-то нужно, лучше обратись за помощью командой /help или через меню бота!'
+    )

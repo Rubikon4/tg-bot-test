@@ -1,14 +1,12 @@
-"""Функции для регистрации и изменения профиля пользователя."""
+"""Функции для регистрации/изменения профиля пользователя, админ контроля."""
 
 from aiogram.types import Message
-from aiogram.fsm.context import FSMContext
 
 from Database import crud
-from States.states import Registration, ChangeProfile
-from Database.crud import get_user_by_tg_id, create_user_in_users, update_user_in_users
+from Database.crud import get_user_by_tg_id
 from Keyboards import inlineKeyboards as ik
 
-async def get_profile(message: Message):
+async def get_profile_send_reply(message: Message):
     """" Обработчик реплай-кнопки 'Мой профиль' """
     user_tg_id=message.from_user.id 
     user=await get_user_by_tg_id(user_tg_id)
@@ -22,3 +20,11 @@ async def get_profile(message: Message):
         )
         keyboard=ik.il_ChangeProfileBtn_insideReply
     await message.answer(responce_text, reply_markup=keyboard)
+
+async def check_is_admin(message: Message) -> bool:
+    """ Проверяет, является ли пользователь администратором."""
+    check_user = await get_user_by_tg_id(message.from_user.id)
+    if check_user == None:
+        return False
+    elif check_user.is_admin:
+        return True
