@@ -23,7 +23,7 @@ async def admin_panel(message: Message):
     """Обработчик команды /admin."""
     await message.answer('Выберите функцию:', reply_markup=il_adminPanel)
 
-            ###   Состояния   ###
+            ###   Состояния оповещения пользователей   ###
 @router.callback_query(F.data == 'admin_panel_main', CheckAdminFilter())
 async def sendMessageCallback_getMessage(callback_query: CallbackQuery, state: FSMContext):
     """Начало состояния отправки сообщения всем пользователям - получение."""
@@ -51,7 +51,6 @@ async def sendMessageCallback_sendMessage(message: Message, state: FSMContext):
         await state.clear()
         return
     await message.answer(f'Отправка сообщений {len(all_users)} пользователям...')
-    await state.clear()
     success_count = 0
     fail_count = 0
     for user in all_users:
@@ -66,7 +65,7 @@ async def sendMessageCallback_sendMessage(message: Message, state: FSMContext):
                     await message.bot.send_photo(
                         chat_id=user.tg_id,
                         photo=msg['content'],
-                        caption=msg.get('caption')
+                        caption=msg.get('caption') # get() защищает от ошибки при отсутствии ключа
                     )
                 elif msg['type'] == 'video':
                     await message.bot.send_video(
@@ -89,3 +88,53 @@ async def sendMessageCallback_sendMessage(message: Message, state: FSMContext):
         f'Отправка не удалась: {fail_count} пользователей.'
     )    
     await state.clear()
+
+@router.message(Command('cancel'), SendMessageAllUsers.message_collection, CheckAdminFilter())
+async def sendMessageCallback_cancelCmd(message: Message, state: FSMContext):
+    """Отменяет оповещение, завершает состояние."""
+    await message.answer('Оповещение отменено.')
+    await state.clear()
+
+@router.message(SendMessageAllUsers.message_collection, F.text, ~Command('send'), ~Command('cancel'))
+async def sendMessageCallback_collectText(message: Message, state: FSMContext):
+    """Получает новые текстовые-сообщения и сохраняет внутри состояния."""
+    data = await state.get_data()
+    messages = data.get('messages', [])
+    messages.append({
+        'type': 'text',
+        'content': message.text
+    })
+    await state.update_data(messages=messages)
+@router.message(SendMessageAllUsers.message_collection, F.photo)
+async def sendMessageCallback_collectText(message: Message, state: FSMContext):
+    """Получает новые фото-сообщения и сохраняет внутри состояния."""
+    data = await state.get_data()
+    messages = data.get('messages', [])
+    messages.append({
+        'type': 'photo',
+        'content': message.photo[-1].file_id,
+        'caption': message.caption
+    })
+    await state.update_data(messages=messages)
+@router.message(SendMessageAllUsers.message_collection, F.video)
+async def sendMessageCallback_collectText(message: Message, state: FSMContext):
+    """Получает новые видео-сообщения и сохраняет внутри состояния."""
+    data = await state.get_data()
+    messages = data.get('messages', [])
+    messages.append({
+        'type': 'video',
+        'content': message.video.file_id,
+        'caption': message.caption
+    })
+    await state.update_data(messages=messages)
+@router.message(SendMessageAllUsers.message_collection, F.document)
+async def sendMessageCallback_collectText(message: Message, state: FSMContext):
+    """Получает новые документ-сообщения и соханяет внутри состояния."""
+    data = await state.get_data()
+    messages = data.get('messages', [])
+    messages.append({
+        'type': 'document',
+        'content': message.document.file_id,
+        'caption': message.caption
+    })
+    await state.update_data(messages=messages)

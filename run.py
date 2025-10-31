@@ -8,6 +8,7 @@ from Config.config import TOKEN
 
 from Handlers.handlers import router
 from Handlers.libraryHandlers import router as library_router
+from Handlers.adminHandlers import router as admin_router
 
 bot = Bot(token=TOKEN) # Токен бота импортируется из config.py, который в свою очередь создаётся в той же папке, что и run.py
 dp = Dispatcher()
@@ -26,6 +27,7 @@ dp = Dispatcher()
 #    )
 
 async def main():
+    dp.include_router(admin_router)
     dp.include_router(library_router)
     dp.include_router(router)
 #    await set_chat_menu_button()
