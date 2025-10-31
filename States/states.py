@@ -3,7 +3,6 @@
 from aiogram.fsm.state import StatesGroup, State
 
 
-
 class Registration(StatesGroup):
     username = State()
     lucky_number = State()
